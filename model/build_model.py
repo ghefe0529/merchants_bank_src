@@ -52,6 +52,7 @@ if __name__ == '__main__':
     lgr = LogisticRegression()
     lgr.fit(x_train, y_train.ravel())
     y_pre_proba = lgr.predict_proba(x_test)
+    
     # 取出训练到概率并存入文件
     pre_proba_to_csv(y_pre_proba[:, 1:])
     
