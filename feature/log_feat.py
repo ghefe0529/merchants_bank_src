@@ -43,6 +43,7 @@ def handle_log_time(train_log_data):
     return train_log_data
     # print(train_log_data[:10])
 
+# 处理EVT列
 def handle_log_evt(train_log_data):
     train_log_evt_data = train_log_data['EVT_LBL'].as_matrix()
     # print(train_log_evt_data)
@@ -54,6 +55,7 @@ def handle_log_evt(train_log_data):
     train_log_data['EVT_LBL_3'] = train_log_evt_data['3']
     train_log_data = train_log_data.drop(['EVT_LBL'], axis=1)
     return train_log_data
+
 
 if __name__ == '__main__':
     # 获取train log
@@ -71,7 +73,7 @@ if __name__ == '__main__':
     # train_flg_data = pd.read_csv(train_flg_path, train_log_usrid_data)
     
     # 查看这些用户的购买标记
-    flg_sum(train_flg_data, train_log_usrid_data)
+    # flg_sum(train_flg_data, train_log_usrid_data)
 
     # 处理log内的时间特征
     # print('处理log内的时间特征')
