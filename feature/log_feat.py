@@ -20,10 +20,12 @@ train_log_feature_path = common_path + r'/data/feature/train_log_first.csv'
 
 def flg_sum(train_flg_data, train_log_usrid_data):
     # 查看这些用户的购买标记
+    # 有test flg_1 2860 sum 39028
+    # 无test flg_1 316 sum 40972
     flg_1 = 0
     sum = 0
     for usrid,flg in zip(train_flg_data['USRID'], train_flg_data['FLAG']):
-        if usrid in train_log_usrid_data:
+        if usrid not in train_log_usrid_data:
             sum += 1
             if flg == 1:
                 flg_1 += 1
@@ -56,8 +58,9 @@ def handle_log_evt(train_log_data):
 if __name__ == '__main__':
     # 获取train log
     train_log_data = pd.read_csv(train_log_path)
+    train_flg_data = pd.read_csv(train_flg_path)
     # 获取有log记录的USRID
-    # train_log_usrid_data = set(train_log_data['USRID'].as_matrix())
+    train_log_usrid_data = set(train_log_data['USRID'].as_matrix())
     # print('len train_log_data', len(train_log_data))
     # 3533818
     # print('len train_log_usrid_data is ',len(train_log_usrid_data))
@@ -68,7 +71,7 @@ if __name__ == '__main__':
     # train_flg_data = pd.read_csv(train_flg_path, train_log_usrid_data)
     
     # 查看这些用户的购买标记
-    # flg_sum(train_flg_data)
+    flg_sum(train_flg_data, train_log_usrid_data)
 
     # 处理log内的时间特征
     # print('处理log内的时间特征')
@@ -79,5 +82,3 @@ if __name__ == '__main__':
     # train_log_data = handle_log_evt(train_log_data)
     # 将处理了时间和evt后的log写入文件
     # train_log_data.to_csv(train_log_feature_path, index=0)
-
-
