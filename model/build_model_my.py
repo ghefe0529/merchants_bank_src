@@ -7,9 +7,10 @@
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import GaussianNB
 from sklearn.model_selection import train_test_split
-from xgboost import XGBClassifier
-
+import xgboost
+from sklearn import metrics
 
 common_path = r'~/Documents/Study/Python/merchants_bank/'
 # train 
@@ -41,7 +42,15 @@ test_time_path = common_path + r'data/feature/test_time.csv'
 # temp
 test_temp = common_path + r'/data/feature/test_temp.csv'
 
-result_path = common_path + r'data/corpus/output/test_result2.csv'
+result_path = common_path + r'data/corpus/output/test_result1.csv'
+
+def get_median(tmp_list):
+    tmp_list.sort()
+    size = len(tmp_list)
+    if size % 2 == 0:
+        return (tmp_list[size//2]+tmp_list[size//2-1])/2
+    else:
+        return tmp_list[(size-1)//2]
 
 def pre_proba_to_csv(pre_proba):
     # 获取测试集的USRID
@@ -57,22 +66,58 @@ def pre_proba_to_csv(pre_proba):
 
 
 if __name__ == '__main__':
-    # 读取训练集
+    '''
+    # 读取训练集 加上了evt3
     train_agg_data = pd.read_csv(train_agg_path)
-    # merge_evt3
     train_usrid_merge_evt3_data = pd.read_csv(train_usrid_merge_evt3_path)
     train_pre_usrid_merge_evt3_data = pd.read_csv(train_pre_usrid_merge_evt3_path)
     train_both_usrid_mergr_evt3_data = pd.concat([train_usrid_merge_evt3_data, train_pre_usrid_merge_evt3_data],axis=0)
-    # agg+merge_evt3
-    train_df = pd.merge(train_agg_data,train_both_usrid_mergr_evt3_data, how='left', on='USRID')
 
-    # 添加count 
-    train_log_count_data = pd.read_csv(train_log_count_path)
-    # agg evt3 + log_count
-    train_df = pd.merge(train_df, train_log_count_data, how='left', on='USRID')
+    train_df = pd.merge(train_agg_data,train_both_usrid_mergr_evt3_data, how='left', on='USRID')
+    train_df.to_csv(train_temp,index=0)
+
+    # Y
+    train_flg_data = pd.read_csv(train_flg_path)
+
+    train_df.pop('USRID')
+    X = train_df.as_matrix()
+
+    train_flg_data.pop('USRID')
+    Y = train_flg_data.as_matrix()
+
+    # 训练模型
+
+    # 逻辑回归
+    x_train, x_test, y_train, y_test = train_test_split(X, Y.ravel(), test_size=0.2, random_state=0)
+    lgr = LogisticRegression()
+    lgr.fit(x_train, y_train)
+    y_pre_proba = lgr.predict_proba(x_test)[:, 1:]
     
-    # 没有的填充平均数
-    # print(train_df['LOG_COUNT'][1])
+    # xgboost
+    # xgb_model = xgboost.XGBClassifier(silent=1, max_depth=10, n_estimators=1000, learning_rate=0.05)
+    # xgb_model.fit(x_train, y_train)
+    # y_pre_proba = xgb_model.predict_proba(x_test)[:, 1:]
+
+    # 高斯朴素贝叶斯
+    # gss = GaussianNB()
+    # gss.fit(x_train, y_train)
+    # y_pre_proba = gss.predict_proba(x_test)[:, 1:]
+
+    test_auc = metrics.roc_auc_score(y_test,y_pre_proba)
+    
+    print(test_auc)    
+
+    # 取出训练到概率并存入文件
+    # pre_proba_to_csv(y_pre_proba[:, 1:])
+    '''
+    # 读取训练集 加上count
+    train_agg_data = pd.read_csv(train_agg_path)
+    # 添加count 没有的填充平均数
+    train_log_count_data = pd.read_csv(train_log_count_path)
+
+    train_df = pd.merge(train_agg_data, train_log_count_data, how='left', on='USRID')
+    
+    print(train_df['LOG_COUNT'][1])
     # median_count = get_median(list(train_df['LOG_COUNT']))
     train_dt_tmpe = train_df.fillna(0)
 
@@ -83,55 +128,38 @@ if __name__ == '__main__':
 
     train_df.to_csv(train_temp,index=0)
 
-
     # Y
     train_flg_data = pd.read_csv(train_flg_path)
 
-    # 读取测试集
-    test_agg_data = pd.read_csv(test_agg_path)
-
-    # merge_evt3
-    test_usrid_merge_evt3_data = pd.read_csv(test_usrid_merge_evt3_path)
-    test_pre_usrid_merge_evt3_data = pd.read_csv(test_pre_usrid_merge_evt3_path)
-    test_both_usrid_mergr_evt3_data = pd.concat([test_usrid_merge_evt3_data, test_pre_usrid_merge_evt3_data],axis=0)
-    # agg + merge_vet3
-    test_df = pd.merge(test_agg_data, test_both_usrid_mergr_evt3_data, how='left', on='USRID')
-
-    # 添加count 
-    test_log_count_data = pd.read_csv(test_log_count_path)
-    # agg evt3 + log_count
-    test_df = pd.merge(test_df, test_log_count_data, how='left', on='USRID')
-    
-    # 没有的填充平均数
-    # print(train_df['LOG_COUNT'][1])
-    # median_count = get_median(list(train_df['LOG_COUNT']))
-    test_dt_tmpe = test_df.fillna(0)
-
-    avg_count = sum(list(train_dt_tmpe['LOG_COUNT']))/len(list(train_dt_tmpe['LOG_COUNT']))
-    # print('median is ', median_count)
-    test_df = test_df.fillna(avg_count)
-
-    test_df.to_csv(test_temp,index=0)
-
+    # turn X
     train_df.pop('USRID')
     X = train_df.as_matrix()
-
+    
+    # turn Y
     train_flg_data.pop('USRID')
     Y = train_flg_data.as_matrix()
 
-    test_df.pop('USRID')
-    x_test = test_df.as_matrix()
-
     # 训练模型
-    lgr = LogisticRegression()
-    lgr.fit(X, Y)
 
-    y_pre_proba = lgr.predict_proba(x_test)
+    # 逻辑回归
+    x_train, x_test, y_train, y_test = train_test_split(X, Y.ravel(), test_size=0.2, random_state=0)
+    lgr = LogisticRegression()
+    lgr.fit(x_train, y_train)
+    y_pre_proba = lgr.predict_proba(x_test)[:, 1:]
     
-    # xgb_model = XGBClassifier(silent=1, max_depth=10, n_estimators=1000, learning_rate=0.05)
-    # xgb_model.fit(X, Y)
-    # y_pre_proba = xgb_model.predict_proba(x_test)
+    # xgboost
+    # xgb_model = xgboost.XGBClassifier(silent=1, max_depth=10, n_estimators=1000, learning_rate=0.05)
+    # xgb_model.fit(x_train, y_train)
+    # y_pre_proba = xgb_model.predict_proba(x_test)[:, 1:]
+
+    # 高斯朴素贝叶斯
+    # gss = GaussianNB()
+    # gss.fit(x_train, y_train)
+    # y_pre_proba = gss.predict_proba(x_test)[:, 1:]
+
+    test_auc = metrics.roc_auc_score(y_test,y_pre_proba)
+    
+    print(test_auc)    
 
     # 取出训练到概率并存入文件
-    pre_proba_to_csv(y_pre_proba[:, 1:])
-    
+    # pre_proba_to_csv(y_pre_proba[:, 1:])

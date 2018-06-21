@@ -58,46 +58,6 @@ def count_evt3_proba():
     # print('evt3_proba ',evt3_proba_df[:10])
     # evt3_proba_df.to_csv(temp_path)
     return evt3_proba
-    '''
-    df_flg1 = [ ele for ele in df.as_matrix() if ele[-1] == 1 ]
-    df_flg1 = pd.DataFrame(df_flg1, columns=df.columns)
-    df.pop('USRID')
-    df.pop('FLAG')
-    # print(df_flg)
-    
-    df_columns = list(df.columns)
-    # df_columns.remove('USRID')
-    # df_columns.remove('FLAG')
-    # print(len(df_columns))
-
-
-    
-    evt3_click_sum = []
-    for i,columns_i in enumerate(df_columns):
-        evt3_click_sum.append(int(sum(list(df[columns_i].as_matrix()))))
-        # print(i,columns_i,evt3_click_sum[i])
-        # break
-    
-    evt3_click_flg = []
-    for i,columns_i in enumerate(df_columns):
-        evt3_click_flg.append(int(sum(list(df_flg1[columns_i].as_matrix()))))
-        # print(i,columns_i,evt3_click_flg[i])
-        # break
-    # print('evt3_click_sum', evt3_click_sum[:10])
-    # print('evt3_click_flg', evt3_click_flg[:10])
-    evt3_proba = []
-    i = 0
-    for x,y in zip(evt3_click_flg, evt3_click_sum):
-        if y != 0:
-            evt3_proba.append(float(x)/float(y))
-        else: 
-            evt3_proba.append(0)
-        i += 1
-    evt3_proba_df = pd.DataFrame(evt3_proba)
-    print('evt3_proba ',evt3_proba_df[:10])
-    # evt3_proba_df.to_csv(save_path)
-    return evt3_proba
-    '''
 
 def sum_evt3_def(usrid_evt3_path, save_path):
     df = pd.read_csv(usrid_evt3_path)
