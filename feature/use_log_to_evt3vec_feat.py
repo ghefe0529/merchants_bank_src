@@ -9,12 +9,16 @@ import numpy as np
 
 
 common_path = r'~/Documents/Study/Python/merchants_bank'
-
+# train
+#  input 
 train_log_path = common_path + r'/data/corpus/output/train_log.csv'
-
-test_log_path = common_path + r'/data/corpus/output/test_log.csv'
-
+# output
 train_log_evt3_usrid_path = common_path + r'/data/feature/train_usrid_evt3.csv'
+
+# test
+# input
+test_log_path = common_path + r'/data/corpus/output/test_log.csv'
+# output
 test_log_evt3_usrid_path = common_path + r'/data/feature/test_usrid_evt3.csv'
 
 # 根据特征个数生成特征列名
