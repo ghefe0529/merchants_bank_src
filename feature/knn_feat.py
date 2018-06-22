@@ -118,4 +118,4 @@ if __name__ == '__main__':
                         [train_time_path, test_time_path],
                         [train_agg_without_log_path, test_agg_without_log_path], 
                         [train_pre_time_withlog_path, test_pre_time_withlog_path],
-                        'avg_tim')
+                        'AVG_TIM')

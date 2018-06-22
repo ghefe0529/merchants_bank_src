@@ -13,8 +13,8 @@ import xgboost
 from sklearn import metrics
 from sklearn.model_selection import GridSearchCV
 
-# common_path = r'~/Documents/Study/Python/merchants_bank/'
-common_path = r'~/Documents/merchants_bank'
+common_path = r'~/Documents/Study/Python/merchants_bank/'
+# common_path = r'~/Documents/merchants_bank'
 # train 
 train_agg_path = common_path + r'/data/corpus/output/train_agg.csv'
 # merge_evt3
@@ -140,7 +140,7 @@ if __name__ == '__main__':
     # train_both_usrid_merge_evt3_data = pd.concat([train_usrid_merge_evt3_data, train_pre_usrid_merge_evt3_data],axis=0)
 
     train_df = pd.merge(train_agg_data,train_usrid_merge_evt3_data, how='left', on='USRID')
-    train_df = pd.merge(train_agg_data,train_both_usrid_merge_evt3_data, how='left', on='USRID')
+    # train_df = pd.merge(train_agg_data,train_both_usrid_merge_evt3_data, how='left', on='USRID')
     train_dt_tmpe = train_df.fillna(0)
 
 

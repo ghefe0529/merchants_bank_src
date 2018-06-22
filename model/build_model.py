@@ -66,14 +66,16 @@ def pre_proba_to_csv(pre_proba):
 if __name__ == '__main__':
     # 读取训练集
     train_agg_data = pd.read_csv(train_agg_path)
-    # merge_evt3
+    # 读取evt3
     train_usrid_merge_evt3_data = pd.read_csv(train_usrid_merge_evt3_path)
     train_pre_usrid_merge_evt3_data = pd.read_csv(train_pre_usrid_merge_evt3_path)
-    train_both_usrid_mergr_evt3_data = pd.concat([train_usrid_merge_evt3_data, train_pre_usrid_merge_evt3_data],axis=0)
+    # train_both_usrid_merge_evt3_data = pd.concat([train_usrid_merge_evt3_data, train_pre_usrid_merge_evt3_data],axis=0)
+
+    train_df = pd.merge(train_agg_data,train_usrid_merge_evt3_data, how='left', on='USRID')
+    # train_df = pd.merge(train_agg_data,train_both_usrid_merge_evt3_data, how='left', on='USRID')
+    train_dt_tmpe = train_df.fillna(0)
     
-    # agg+merge_evt3
-    train_df = pd.merge(train_agg_data, train_both_usrid_mergr_evt3_data, how='left', on='USRID')
-    '''
+    # '''
     # 添加count 
     train_log_count_data = pd.read_csv(train_log_count_path)
     # agg evt3 + log_count
@@ -110,6 +112,7 @@ if __name__ == '__main__':
 
     train_df = pd.merge(train_df, train_both_time_data, how='left', on='USRID')
 
+    '''
     train_df.to_csv(train_temp,index=0)
 
 

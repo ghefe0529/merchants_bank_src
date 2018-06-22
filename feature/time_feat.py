@@ -8,8 +8,8 @@ import numpy as np
 import pandas as pd
 import time
 
-# common_path = r'~/Documents/Study/Python/merchants_bank'
-common_path = r'~/Documents/merchants_bank'
+common_path = r'~/Documents/Study/Python/merchants_bank'
+# common_path = r'~/Documents/merchants_bank'
 # train
 #  input 
 train_log_path = common_path + r'/data/corpus/output/train_log.csv'
@@ -56,12 +56,12 @@ def combat_data_by_usrid(data_path, save_path):
         # break
     time_feat_df = pd.DataFrame([])
     time_feat_df['USRID'] = usrid_data
-    time_feat_df['avg_tim'] = avg_tim
+    time_feat_df['AVG_TIM'] = avg_tim
     print(time_feat_df)
     time_feat_df.to_csv(save_path,index=0)
 
     print('-------保存成功--------')
 
 if __name__ == '__main__':
-    # combat_data_by_usrid(train_log_path, train_time_path)
+    combat_data_by_usrid(train_log_path, train_time_path)
     combat_data_by_usrid(test_log_path, test_time_path)
