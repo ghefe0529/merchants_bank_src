@@ -8,7 +8,8 @@
 import numpy as np
 import pandas as pd
 
-common_path = r'~/Documents/Study/Python/merchants_bank'
+# common_path = r'~/Documents/Study/Python/merchants_bank'
+common_path = r'~/Documents/merchants_bank'
 # train
 # input
 train_usrid_evt3_path = common_path + r'/data/feature/train_usrid_evt3.csv'
@@ -74,7 +75,7 @@ def sum_evt3_def(usrid_evt3_path, save_path):
             sum_evt3 += x * j
         merge_evt3.append(sum_evt3)
     # print(merge_evt3[:10])
-    merge_evt3_df = pd.DataFrame(merge_evt3, columns=['merge_evt3'])
+    merge_evt3_df = pd.DataFrame(merge_evt3, columns=['MERGE_EVT3'])
     merge_evt3_df = pd.concat([df_usrid, merge_evt3_df],axis=1)
     merge_evt3_df.to_csv(save_path, index=0)
     print('保存成功')
