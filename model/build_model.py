@@ -6,7 +6,7 @@
 
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LogisticRegression,Ridge
 from sklearn.model_selection import train_test_split
 from xgboost import XGBClassifier
 
@@ -29,6 +29,11 @@ train_pre_time_path = common_path + r'/data/feature/train_pre_time.csv'
 # train_log_path = r'/data/corpus/train_log.csv'
 train_flg_path = common_path + r'/data/corpus/output/train_flg.csv'
 
+# tfidf
+train_tfidf_path = common_path + r'/data/feature/train_tfidf.csv'
+
+
+
 # temp
 train_temp = common_path + r'/data/feature/trian_temp.csv'
 
@@ -46,6 +51,9 @@ test_pre_time_path = common_path + r'/data/feature/test_pre_time.csv'
 
 # temp
 test_temp = common_path + r'/data/feature/test_temp.csv'
+
+# tfidf
+test_tfidf_path = common_path + r'/data/feature/test_tfidf.csv'
 
 result_path = common_path + r'/data/corpus/output/test_result5.csv'
 
@@ -113,6 +121,12 @@ if __name__ == '__main__':
     train_df = pd.merge(train_df, train_both_time_data, how='left', on='USRID')
 
     '''
+    # 添加tfidf
+    train_tfidf_data = pd.read_csv(train_tfidf_path)
+
+    train_df = pd.merge(train_df, train_tfidf_data, how='left',left_on='USRID',right_on='0')
+    train_df = train_df.fillna(0)
+
     train_df.to_csv(train_temp,index=0)
 
 
@@ -160,10 +174,17 @@ if __name__ == '__main__':
 
     # time
     test_time_data = pd.read_csv(test_time_path)
-    test_pre_time_data = pd.read_csv(test_pre_time_path)
-    test_both_time_data = pd.concat([test_time_data, test_pre_time_data], axis=0)
+    # test_pre_time_data = pd.read_csv(test_pre_time_path)
+    # test_both_time_data = pd.concat([test_time_data, test_pre_time_data], axis=0)
 
-    test_df = pd.merge(test_df, test_both_time_data, how='left', on='USRID')
+    test_df = pd.merge(test_df, test_time_data, how='left', on='USRID')
+    test_df.fillna(0)
+
+    # 添加tfidf
+    test_tfidf_data = pd.read_csv(test_tfidf_path)
+
+    test_df = pd.merge(test_df, test_tfidf_data, how='left',left_on='USRID',right_on='0')
+    test_df = test_df.fillna(0)
 
     test_df.to_csv(test_temp,index=0)
 
@@ -179,15 +200,32 @@ if __name__ == '__main__':
 
     # 训练模型
     print('model is begin')
-    lgr = LogisticRegression()
-    lgr.fit(X, Y)
+    # lgr = XGBClassifier(booster = gbtree',
+    #           objective = binary:logistic',
+    #           eta = 0.02,
+    #           max_depth = 4,  # 4 3
+    #           colsample_bytree = 0.8,#0.8
+    #           subsample = 0.7,
+    #           min_child_weight = 9,  # 2 3
+    #           silent=1)
+    print('X shape', X.shape)
+    print('X columns', train_df.columns)
 
-    y_pre_proba = lgr.predict_proba(x_test)
+    print('Y shape', Y.shape)
+
+    print('x_test shape', x_test.shape)
+    print('x_test columns', test_df.columns)
+
+    xgb_model = XGBClassifier(learning_rate=0.01,max_depth=4,n_estimators=800)
+    
+    xgb_model.fit(X, Y)
+    y_pre_proba = xgb_model.predict_proba(x_test)[:, 1:]
+
     # xgb_model = XGBClassifier(silent=1, max_depth=10, n_estimators=1000, learning_rate=0.05)
     # xgb_model.fit(X, Y)
     # y_pre_proba = xgb_model.predict_proba(x_test)
     print('model is end')
 
     # 取出训练到概率并存入文件
-    pre_proba_to_csv(y_pre_proba[:, 1:])
+    pre_proba_to_csv(y_pre_proba)
     

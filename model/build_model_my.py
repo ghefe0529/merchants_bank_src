@@ -6,17 +6,18 @@
 
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LogisticRegression,Ridge
 from sklearn.naive_bayes import GaussianNB
 from sklearn.model_selection import train_test_split
 import xgboost
 from sklearn import metrics
 from sklearn.model_selection import GridSearchCV
 
-common_path = r'~/Documents/Study/Python/merchants_bank/'
-# common_path = r'~/Documents/merchants_bank'
+# common_path = r'~/Documents/Study/Python/merchants_bank/'
+common_path = r'~/Documents/merchants_bank'
 # train 
 train_agg_path = common_path + r'/data/corpus/output/train_agg.csv'
+# train_new_agg_path = common_path + r'/data/feature/train_new_agg.csv'
 # merge_evt3
 train_usrid_merge_evt3_path = common_path + r'/data/feature/train_usrid_merge_evt3.csv'
 train_pre_usrid_merge_evt3_path = common_path + r'/data/feature/train_pre_usrid_merge_evt3.csv'
@@ -27,6 +28,10 @@ train_pre_log_count_path = common_path + r'/data/feature/train_pre_log_count.csv
 # time_feat
 train_time_path = common_path + r'/data/feature/train_time.csv'
 train_pre_time_path = common_path + r'/data/feature/train_pre_time.csv'
+# tfidf
+train_tfidf_path = common_path + r'/data/feature/train_tfidf.csv'
+
+
 
 # train_log_path = r'/data/corpus/train_log.csv'
 train_flg_path = common_path + r'/data/corpus/output/train_flg.csv'
@@ -36,6 +41,7 @@ train_temp = common_path + r'/data/feature/trian_temp.csv'
 
 # test
 test_agg_path = common_path + r'data/corpus/output/test_agg.csv'
+# test_new_agg_path = common_path + r'/data/feature/test_new_agg.csv'
 # merge_evt3
 test_usrid_merge_evt3_path = common_path + r'/data/feature/test_usrid_merge_evt3.csv'
 test_pre_usrid_merge_evt3_path = common_path + r'/data/feature/test_pre_usrid_merge_evt3.csv'
@@ -45,6 +51,8 @@ test_pre_log_count_path = common_path + r'/data/feature/test_pre_log_count.csv'
 # time_feat
 test_time_path = common_path + r'data/feature/test_time.csv'
 test_pre_time_path = common_path + r'data/feature/test_pre_time.csv'
+# tfidf
+test_tfidf_path = common_path + r'/data/feature/test_tfidf.csv'
 
 # temp
 test_temp = common_path + r'/data/feature/test_temp.csv'
@@ -134,13 +142,14 @@ if __name__ == '__main__':
     '''
     # 读取训练集
     train_agg_data = pd.read_csv(train_agg_path)
+    
     # 读取evt3
     train_usrid_merge_evt3_data = pd.read_csv(train_usrid_merge_evt3_path)
-    train_pre_usrid_merge_evt3_data = pd.read_csv(train_pre_usrid_merge_evt3_path)
+    # train_pre_usrid_merge_evt3_data = pd.read_csv(train_pre_usrid_merge_evt3_path)
     # train_both_usrid_merge_evt3_data = pd.concat([train_usrid_merge_evt3_data, train_pre_usrid_merge_evt3_data],axis=0)
 
     train_df = pd.merge(train_agg_data,train_usrid_merge_evt3_data, how='left', on='USRID')
-    # train_df = pd.merge(train_agg_data,train_both_usrid_merge_evt3_data, how='left', on='USRID')
+    # train_df = pd.merge(train_agg_data,train_both_usrid_merge_evt3_data, ow='left', on='USRID')
     train_dt_tmpe = train_df.fillna(0)
 
 
@@ -169,6 +178,13 @@ if __name__ == '__main__':
     # 没有time 的填充0
     train_df = train_df.fillna(0)
 
+
+    # 添加tfidf
+    # train_tfidf_data = pd.read_csv(train_tfidf_path)
+
+    # train_df = pd.merge(train_df, train_tfidf_data, how='left',left_on='USRID',right_on='0')
+    # train_df = train_df.fillna(0)
+
     train_df.to_csv(train_temp,index=0)
 
     # Y
@@ -176,19 +192,19 @@ if __name__ == '__main__':
 
     # turn X
     train_df.pop('USRID')
-    X = train_df.as_matrix()
+    X = train_df.values
     
     # turn Y
     train_flg_data.pop('USRID')
-    Y = train_flg_data.as_matrix()
+    Y = train_flg_data.values
 
     # 训练模型
 
     # 逻辑回归
     x_train, x_test, y_train, y_test = train_test_split(X, Y.ravel(), test_size=0.2, random_state=0)
-    lgr = LogisticRegression()
-    lgr.fit(x_train, y_train)
-    y_pre_proba = lgr.predict_proba(x_test)[:, 1:]
+    # lgr = LogisticRegression()
+    # lgr.fit(x_train, y_train)
+    # y_pre_proba = lgr.predict_proba(x_test)[:, 1:]
     
     # xgboost
     # silent过程是否输出（0：输出）
@@ -220,6 +236,9 @@ if __name__ == '__main__':
     # clf.fit(x_train,y_train)
     # # xgb_model.fit(x_train, y_train)
     # y_pre_proba = xgb_model.predict_proba(x_test)[:, 1:]
+    xgb_model = xgboost.XGBClassifier(learning_rate=0.01,max_depth=4,n_estimators=800)
+    xgb_model.fit(x_train, y_train)
+    y_pre_proba = xgb_model.predict_proba(x_test)[:, 1:]
 
     # 高斯朴素贝叶斯
     # gss = GaussianNB()

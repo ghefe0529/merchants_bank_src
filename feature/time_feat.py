@@ -8,8 +8,8 @@ import numpy as np
 import pandas as pd
 import time
 
-common_path = r'~/Documents/Study/Python/merchants_bank'
-# common_path = r'~/Documents/merchants_bank'
+# common_path = r'~/Documents/Study/Python/merchants_bank'
+common_path = r'~/Documents/merchants_bank'
 # train
 #  input 
 train_log_path = common_path + r'/data/corpus/output/train_log.csv'
@@ -29,9 +29,12 @@ def combat_data_by_usrid(data_path, save_path):
     usrid_data =[]
     # 时间间隔内平均点击次数
     avg_tim =[]
+    # 最后一次点击时间
+    last_click = []
     for usrid, group in df.groupby(['USRID']):
         usrid_data.append(usrid)
         sum_tim = list(group['OCC_TIM'])
+        last_click.append(min([31-int(x[8:10]) for x in sum_tim])/100)
         sum_tim = [ (1522512000.0 - time.mktime(time.strptime(x, '%Y-%m-%d %H:%M:%S'))) for x in sum_tim]
         sum_tim.sort(reverse=True)
         # 每个单位时间内的点击次数
@@ -52,11 +55,12 @@ def combat_data_by_usrid(data_path, save_path):
         interval_time.append(count)
         avg_tim.append(sum(interval_time)/len(interval_time))
         # print(avg_tim)
-        
         # break
     time_feat_df = pd.DataFrame([])
     time_feat_df['USRID'] = usrid_data
     time_feat_df['AVG_TIM'] = avg_tim
+    # time_feat_df['LAST_TIM'] = last_click
+
     print(time_feat_df)
     time_feat_df.to_csv(save_path,index=0)
 
