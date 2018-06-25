@@ -32,6 +32,12 @@ train_flg_path = common_path + r'/data/corpus/output/train_flg.csv'
 # tfidf
 train_tfidf_path = common_path + r'/data/feature/train_tfidf.csv'
 
+# time two
+train_time_two_path = common_path + r'/data/Final_time.csv'
+# last time
+last_time_path = common_path + r'/data/all_lasttime_feature.csv'
+# max click
+max_click_path = common_path +r'/data/all_lasttime_feature.csv'
 
 
 # temp
@@ -48,6 +54,9 @@ test_pre_log_count_path = common_path + r'/data/feature/test_pre_log_count.csv'
 # time_feat
 test_time_path = common_path + r'/data/feature/test_time.csv'
 test_pre_time_path = common_path + r'/data/feature/test_pre_time.csv'
+# time two
+test_time_two_path = common_path + r'/data/Final_Test_Time.csv'
+
 
 # temp
 test_temp = common_path + r'/data/feature/test_temp.csv'
@@ -55,7 +64,7 @@ test_temp = common_path + r'/data/feature/test_temp.csv'
 # tfidf
 test_tfidf_path = common_path + r'/data/feature/test_tfidf.csv'
 
-result_path = common_path + r'/data/corpus/output/test_result5.csv'
+result_path = common_path + r'/data/corpus/output/test_result6.csv'
 
 def pre_proba_to_csv(pre_proba):
     
@@ -127,6 +136,27 @@ if __name__ == '__main__':
     train_df = pd.merge(train_df, train_tfidf_data, how='left',left_on='USRID',right_on='0')
     train_df = train_df.fillna(0)
 
+    # -----------------------------------------------------------
+    # 添加点击天数/点击总数的特征
+    train_time_two_data = pd.read_csv(train_time_two_path)
+    train_df = pd.merge(train_df, train_time_two_data, how='left', on='USRID')
+    train_df = train_df.fillna(0)
+
+
+    # -----------------------------------------------------------
+    # 最后一次点击次数
+    train_last_time_data = pd.read_csv(last_time_path)
+    train_df = pd.merge(train_df, train_last_time_data, how='left', on='USRID')
+    train_df = train_df.fillna(0)
+
+
+
+    # -----------------------------------------------------------
+    # 最高点击频率
+    train_max_click_data = pd.read_csv(max_click_path)
+    train_df = pd.merge(train_df, train_max_click_data, how='left', on='USRID')
+    train_df = train_df.fillna(0)
+
     train_df.to_csv(train_temp,index=0)
 
 
@@ -186,6 +216,29 @@ if __name__ == '__main__':
     test_df = pd.merge(test_df, test_tfidf_data, how='left',left_on='USRID',right_on='0')
     test_df = test_df.fillna(0)
 
+    # -----------------------------------------------------------
+    # 添加点击天数/点击总数的特征
+    test_time_two_data = pd.read_csv(test_time_two_path)
+    test_df = pd.merge(test_df, test_time_two_data, how='left', on='USRID')
+    test_df = test_df.fillna(0)
+
+
+    # -----------------------------------------------------------
+    # 最后一次点击次数
+    test_last_time_data = pd.read_csv(last_time_path)
+    test_df = pd.merge(test_df, test_last_time_data, how='left', on='USRID')
+    test_df = test_df.fillna(0)
+
+
+
+    # -----------------------------------------------------------
+    # 最高点击频率
+    test_max_click_data = pd.read_csv(max_click_path)
+    test_df = pd.merge(test_df, test_max_click_data, how='left', on='USRID')
+    test_df = test_df.fillna(0)
+
+
+
     test_df.to_csv(test_temp,index=0)
 
     # 删除USRID
@@ -200,14 +253,14 @@ if __name__ == '__main__':
 
     # 训练模型
     print('model is begin')
-    # lgr = XGBClassifier(booster = gbtree',
-    #           objective = binary:logistic',
-    #           eta = 0.02,
-    #           max_depth = 4,  # 4 3
-    #           colsample_bytree = 0.8,#0.8
-    #           subsample = 0.7,
-    #           min_child_weight = 9,  # 2 3
-    #           silent=1)
+    # xgb_model = XGBClassifier(booster = 'gbtree',
+            #   objective = 'binary:logistic',
+            #   eta = 0.02,
+            #   max_depth = 4,  # 4 3
+            #   colsample_bytree = 0.8,#0.8
+            #   subsample = 0.7,
+            #   min_child_weight = 9,  # 2 3
+            #   silent=1)
     print('X shape', X.shape)
     print('X columns', train_df.columns)
 
@@ -216,7 +269,7 @@ if __name__ == '__main__':
     print('x_test shape', x_test.shape)
     print('x_test columns', test_df.columns)
 
-    xgb_model = XGBClassifier(learning_rate=0.01,max_depth=4,n_estimators=800)
+    xgb_model = XGBClassifier(learning_rate=0.01,max_depth=4,n_estimators=800,n_jobs=4)
     
     xgb_model.fit(X, Y)
     y_pre_proba = xgb_model.predict_proba(x_test)[:, 1:]

@@ -30,7 +30,12 @@ train_time_path = common_path + r'/data/feature/train_time.csv'
 train_pre_time_path = common_path + r'/data/feature/train_pre_time.csv'
 # tfidf
 train_tfidf_path = common_path + r'/data/feature/train_tfidf.csv'
-
+# time two
+train_time_two_path = common_path + r'/data/Final_time.csv'
+# last time
+train_last_time_path = common_path + r'/data/all_lasttime_feature.csv'
+# max click
+train_max_click_path = common_path +r'/data/all_lasttime_feature.csv'
 
 
 # train_log_path = r'/data/corpus/train_log.csv'
@@ -140,9 +145,11 @@ if __name__ == '__main__':
     # 取出训练到概率并存入文件
     # pre_proba_to_csv(y_pre_proba[:, 1:])
     '''
+    # -----------------------------------------------------------
     # 读取训练集
     train_agg_data = pd.read_csv(train_agg_path)
     
+    # -----------------------------------------------------------
     # 读取evt3
     train_usrid_merge_evt3_data = pd.read_csv(train_usrid_merge_evt3_path)
     # train_pre_usrid_merge_evt3_data = pd.read_csv(train_pre_usrid_merge_evt3_path)
@@ -153,6 +160,7 @@ if __name__ == '__main__':
     train_dt_tmpe = train_df.fillna(0)
 
 
+    # -----------------------------------------------------------
     # 添加count 没有的填充平均数
     # 取出点击次数
     train_log_count_data = pd.read_csv(train_log_count_path)
@@ -170,6 +178,7 @@ if __name__ == '__main__':
     # print('median is ', median_count)
     train_df = train_df.fillna(avg_count)
     
+    # -----------------------------------------------------------
     # 添加单位时间点击的平均数
     # 取出单位时间点击的平均数
     train_time_data =  pd.read_csv(train_time_path)
@@ -179,11 +188,35 @@ if __name__ == '__main__':
     train_df = train_df.fillna(0)
 
 
+    # -----------------------------------------------------------
     # 添加tfidf
-    # train_tfidf_data = pd.read_csv(train_tfidf_path)
+    train_tfidf_data = pd.read_csv(train_tfidf_path)
 
-    # train_df = pd.merge(train_df, train_tfidf_data, how='left',left_on='USRID',right_on='0')
-    # train_df = train_df.fillna(0)
+    train_df = pd.merge(train_df, train_tfidf_data, how='left',left_on='USRID',right_on='0')
+    train_df = train_df.fillna(0)
+
+    # -----------------------------------------------------------
+    # 添加点击天数/点击总数的特征
+    train_time_two_data = pd.read_csv(train_time_two_path)
+    train_df = pd.merge(train_df, train_time_two_data, how='left', on='USRID')
+    train_df = train_df.fillna(0)
+
+
+    # -----------------------------------------------------------
+    # 最后一次点击次数
+    train_last_time_data = pd.read_csv(train_last_time_path)
+    train_df = pd.merge(train_df, train_last_time_data, how='left', on='USRID')
+    train_df = train_df.fillna(0)
+
+
+
+    # -----------------------------------------------------------
+    # 最高点击频率
+    train_max_click_data = pd.read_csv(train_max_click_path)
+    train_df = pd.merge(train_df, train_max_click_data, how='left', on='USRID')
+    train_df = train_df.fillna(0)
+
+
 
     train_df.to_csv(train_temp,index=0)
 
@@ -236,7 +269,19 @@ if __name__ == '__main__':
     # clf.fit(x_train,y_train)
     # # xgb_model.fit(x_train, y_train)
     # y_pre_proba = xgb_model.predict_proba(x_test)[:, 1:]
-    xgb_model = xgboost.XGBClassifier(learning_rate=0.01,max_depth=4,n_estimators=800)
+
+    # xgb_model = xgboost.XGBClassifier(learning_rate=0.01,max_depth=4,n_estimators=800,n_jobs=4)
+
+    xgb_model = xgboost.XGBClassifier(booster = 'gbtree',
+              objective = 'binary:logistic',
+              eta = 0.02,
+              max_depth = 4,  # 4 3
+              colsample_bytree = 0.8,#0.8
+              subsample = 0.7,
+              min_child_weight = 9,  # 2 3
+              n_jobs = 4,
+              silent = 1)
+
     xgb_model.fit(x_train, y_train)
     y_pre_proba = xgb_model.predict_proba(x_test)[:, 1:]
 
