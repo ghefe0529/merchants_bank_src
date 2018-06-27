@@ -37,7 +37,7 @@ train_time_two_path = common_path + r'/data/Final_time.csv'
 # last time
 last_time_path = common_path + r'/data/all_lasttime_feature.csv'
 # max click
-max_click_path = common_path +r'/data/all_lasttime_feature.csv'
+max_click_path = common_path +r'/data/all_maxclick_feature.csv'
 
 
 # temp
@@ -157,6 +157,8 @@ if __name__ == '__main__':
     train_df = pd.merge(train_df, train_max_click_data, how='left', on='USRID')
     train_df = train_df.fillna(0)
 
+    train_df.pop('0')
+
     train_df.to_csv(train_temp,index=0)
 
 
@@ -237,7 +239,8 @@ if __name__ == '__main__':
     test_df = pd.merge(test_df, test_max_click_data, how='left', on='USRID')
     test_df = test_df.fillna(0)
 
-
+    test_df.pop('0')
+    
 
     test_df.to_csv(test_temp,index=0)
 
@@ -253,14 +256,14 @@ if __name__ == '__main__':
 
     # 训练模型
     print('model is begin')
-    # xgb_model = XGBClassifier(booster = 'gbtree',
-            #   objective = 'binary:logistic',
-            #   eta = 0.02,
-            #   max_depth = 4,  # 4 3
-            #   colsample_bytree = 0.8,#0.8
-            #   subsample = 0.7,
-            #   min_child_weight = 9,  # 2 3
-            #   silent=1)
+    xgb_model = XGBClassifier(booster = 'gbtree',
+              objective = 'binary:logistic',
+              eta = 0.02,
+              max_depth = 4,  # 4 3
+              colsample_bytree = 0.8,#0.8
+              subsample = 0.7,
+              min_child_weight = 9,  # 2 3
+              silent=1)
     print('X shape', X.shape)
     print('X columns', train_df.columns)
 
@@ -269,7 +272,7 @@ if __name__ == '__main__':
     print('x_test shape', x_test.shape)
     print('x_test columns', test_df.columns)
 
-    xgb_model = XGBClassifier(learning_rate=0.01,max_depth=4,n_estimators=800,n_jobs=4)
+    # xgb_model = XGBClassifier(learning_rate=0.01,max_depth=4,n_estimators=800,n_jobs=4)
     
     xgb_model.fit(X, Y)
     y_pre_proba = xgb_model.predict_proba(x_test)[:, 1:]

@@ -18,11 +18,14 @@ common_path = r'~/Documents/merchants_bank'
 
 # temp
 train_temp = common_path + r'/data/feature/trian_temp.csv'
+other_train_path = common_path + r'/data/all_train.csv'
 # flg
 train_flg_path = common_path + r'/data/corpus/output/train_flg.csv'
 
 # temp
 test_temp = common_path + r'/data/feature/test_temp.csv'
+other_test_path = common_path + r'/data/all_test.csv'
+# flg
 
 # 结果存放文件
 result_path = common_path + r'/data/feature/result_test7.csv'
@@ -52,12 +55,40 @@ def pre_proba_to_csv(pre_proba):
 if __name__ == '__main__':
     train_df = pd.read_csv(train_temp)
 
+    other_train_df = pd.read_csv(other_train_path)
+    # print('other_train columns', other_train_df.columns)
+    v_list = ['V%s' % x for x in range(1,31) ]
+    v_list.append('FLAG')
+    # print(v_list)
+    other_train_df = other_train_df.drop(v_list, axis=1)
+
+    train_df = pd.merge(train_df, other_train_df, on='USRID',how='left')
+
     flg_df = pd.read_csv(train_flg_path)
     
     test_df = pd.read_csv(test_temp)
 
+    other_test_df = pd.read_csv(other_test_path)
+    v_list.remove('FLAG')
+    other_test_df = other_test_df.drop(v_list, axis=1)
+
+    test_df = pd.merge(test_df, other_test_df, on='USRID',how='left')
+
+    # print('test columns', test_df.columns)
+
+    # print('other_test columns', other_test_df.columns)
+
+    print('train_df shape',train_df.shape)
+    print('test_df shape', test_df.shape)
+
+    # print('train columns', list(train_df.columns))
+    # print('test columns', list(test_df.columns))
+
     train_df.pop('USRID')
+    train_df.pop('recenttime')
+
     flg_df.pop('USRID')
+    test_df.pop('recenttime')
     test_df.pop('USRID')
     
     
@@ -65,6 +96,8 @@ if __name__ == '__main__':
     print('flg_df shape',flg_df.shape)
     print('test_df shape', test_df.shape)
 
+    # '''
+    print('------lasso begin-----')
     # lasso_model = Lasso(alpha=0.000001)
     # lasso_model = Ridge(alpha=0.001)
     lasso_model = RandomForestRegressor(n_estimators=200, max_features=6)
@@ -81,8 +114,9 @@ if __name__ == '__main__':
     test_new = np.delete(test_df.values, dorp_columns, axis=1) 
     print('train new :', train_new.shape)
     print('test new :', test_new.shape)
-
     x_train, x_test, y_train, y_test = train_test_split(train_new, flg_df,test_size=0.2)
+    # '''
+    # x_train, x_test, y_train, y_test = train_test_split(train_df, flg_df,test_size=0.2)
     xgb_model = XGBClassifier(booster = 'gbtree',
                 objective = 'binary:logistic',
                 eta = 0.02,
@@ -113,9 +147,11 @@ if __name__ == '__main__':
                 silent = 1)
 
     model.fit(train_new, flg_df.values.ravel())
+    # model.fit(train_df.values, flg_df.values.ravel())
 
 
     
     y_pre_proba = model.predict_proba(test_new)[:, 1:]
+    # y_pre_proba = model.predict_proba(test_df.values)[:, 1:]
 
     pre_proba_to_csv(y_pre_proba)

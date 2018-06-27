@@ -10,6 +10,7 @@ import pandas as pd
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 
+
 # common_path = r'~/Documents/Study/Python/merchants_bank'
 common_path = r'~/Documents/merchants_bank'
 
@@ -28,6 +29,14 @@ test_log_path = common_path + r'/data/corpus/output/test_log.csv'
 
 # output
 test_tfidf_path = common_path + r'/data/feature/test_tfidf.csv'
+
+
+# 堆叠模型的保存
+lr_model_path = common_path + r'/data/model/LR_model.m'
+svm_model_path = common_path + r'/data/model/svm_model.m'
+randomf_model_path = common_path + r'/data/model/randomf_model.m'
+bayes_model_path = common_path + r'/data/model/bayes_model.m'
+
 
 def handle_evt3(data):
     # 存储usrid
@@ -51,21 +60,23 @@ def tfidf_handle_data(data):
     return result
 
 if __name__ == '__main__':
-
+    # 获取训练集的数据
     print('train')
     train_log_data = pd.read_csv(train_log_path)
     train_evt_list_data = handle_evt3(train_log_data)
-
+    # 获取测试集的数据
     print('test')
     test_log_data = pd.read_csv(test_log_path)
     test_evt_list_data = handle_evt3(test_log_data)
 
     print(train_evt_list_data.shape)
     train_n = train_evt_list_data.shape[0]
+    # 合并训练集和测试集
     evt_list_data = pd.concat([train_evt_list_data,test_evt_list_data],axis=0)
-    
+    # 通过tfidf对evt特征化
     tfidf_data = tfidf_handle_data(evt_list_data['EVT_LIST'])
 
+    # '''
     tfidf_data_df = pd.DataFrame(tfidf_data.todense())
     usrid_df = pd.DataFrame(evt_list_data['USRID'],columns=['USRID'])
     print('evt_list_data[USRID]', usrid_df.shape)
@@ -83,3 +94,5 @@ if __name__ == '__main__':
 
     tfidf_data_df[:train_n].to_csv(train_tfidf_path,index=0)
     tfidf_data_df[train_n:].to_csv(test_tfidf_path,index=0)
+    # '''
+    
