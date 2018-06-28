@@ -14,12 +14,12 @@ common_path = r'~/Documents/merchants_bank'
 # train 
 train_agg_path = common_path + r'/data/corpus/output/train_agg.csv'
 
-train_new_agg_path = common_path + r'/data/feature/train_new_agg.csv'
+train_new_agg_path = common_path + r'/data/feature/6_train_new_agg.csv'
 
 # test
 test_agg_path = common_path + r'/data/corpus/output/test_agg.csv'
 
-test_new_agg_path = common_path + r'/data/feature/test_new_agg.csv'
+test_new_agg_path = common_path + r'/data/feature/6_test_new_agg.csv'
 
 
 def rich_baisc_math(X, Y, method):
@@ -120,7 +120,7 @@ if __name__ == '__main__':
     train_usrid = train_agg_data['USRID']
     train_agg_data.pop('USRID')
     new_one, new_tow = rich_feat_tow(train_agg_data)
-    train_new_agg_data = pd.concat([train_usrid, train_agg_data, pd.DataFrame(new_one, columns=['VARIANCE']), pd.DataFrame(new_tow, columns=['AVG_LIST'])], axis=1)
+    train_new_agg_data = pd.concat([train_usrid, pd.DataFrame(new_one, columns=['VARIANCE']), pd.DataFrame(new_tow, columns=['AVG_LIST'])], axis=1)
     train_new_agg_data.to_csv(train_new_agg_path,index=0)
 
     print('test')
@@ -128,3 +128,5 @@ if __name__ == '__main__':
     test_usrid = test_agg_data['USRID']
     test_agg_data.pop('USRID')
     new_one, new_tow = rich_feat_tow(test_agg_data)
+    test_new_agg_data = pd.concat([test_usrid, pd.DataFrame(new_one, columns=['VARIANCE']), pd.DataFrame(new_tow, columns=['AVG_LIST'])], axis=1)
+    test_new_agg_data.to_csv(test_new_agg_path,index=0)

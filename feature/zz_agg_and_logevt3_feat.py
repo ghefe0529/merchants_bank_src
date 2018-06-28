@@ -2,7 +2,7 @@
 # @Date    : 2018-06-18 15:56:16
 # @Author  : GEFE (gh_efe@163.com)
 # @Version : 1.0.0
-# @Describe : 将有log的usr将agg和log中的evt3合并
+# @Describe : 将有log的usr将agg和merge_evt合并
 
 import numpy as np
 import pandas as pd
