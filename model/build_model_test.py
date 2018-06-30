@@ -45,10 +45,11 @@ all_train_path = common_path + r'/data/all_train.csv'
 all_test_path = common_path + r'/data/all_test.csv'
 final_time_path = common_path + r'/data/Final_time.csv'
 final_test_time_path = common_path + r'/data/Final_Test_time.csv'
+all_test_path = common_path + r'/data/all_test.csv'
+all_train_path = common_path + r'/data/all_train.csv'
 
 # result
-result_path = common_path + r'/data/result.csv'
-
+result_path = common_path + r'/data/result1.csv'
 # 暂存train和test
 train_temp_path = common_path + r'/data/feature/train_temp.csv'
 test_temp_path = common_path + r'/data/feature/test_temp.csv'
@@ -61,7 +62,8 @@ def concat_data(data, concat_data_path, isfillna=True):
         data.fillna(0)
     return data
 
-def select_feature(train_df, train_flg_df, n):
+def select_feature(train_df, train_flg_df, n=100, mode='first'):
+    print('train_df shape ', train_df.shape)
     xgb_model = XGBClassifier(booster = 'gbtree',
               objective = 'binary:logistic',
               eta = 0.02,
@@ -79,7 +81,11 @@ def select_feature(train_df, train_flg_df, n):
     columns_imp = sorted(columns_imp.items(), key= lambda x: x[1], reverse=True)
     print(columns_imp)
     columns_imp = columns_imp[0:n]
-    feature_list = [ j[0] for j in columns_imp ]
+    if mode == 'first':
+        feature_list = [ j[0] for j in columns_imp ]
+    else:
+        feature_list = [ j[0] for j in columns_imp if j[1] != 0 ]
+    print('feature_list len ', len(feature_list))
     return feature_list
 
 
@@ -119,45 +125,58 @@ if __name__ == '__main__':
     train_flg_data = pd.read_csv(train_flg_path)
 
     # 拼接other feat
+    # 读取其他特征
     all_lasttime_df = pd.read_csv(all_lasttime_feature_path)
-    # 计算最后一次点击时间
+    # 计算最后一次点击时间的平均值
     fill_time = sum(list(all_lasttime_df['LASTTIME']))/len(list(all_lasttime_df['LASTTIME']))
     all_maxclick_df = pd.read_csv(all_maxclick_feature_path)
+
     final_time_df = pd.read_csv(final_time_path)
     final_test_time_df = pd.read_csv(final_test_time_path)
-
+    # 将其他特征与train合并
     train_df = pd.merge(train_df, all_lasttime_df, how='left',on='USRID')
-    train_df = train_df.fillna(fill_time)
+    # train_df = train_df.fillna(fill_time)
     train_df = pd.merge(train_df, all_maxclick_df, how='left',on='USRID')
     train_df = pd.merge(train_df, final_time_df, how='left', on='USRID')
-
+    # 将其他特征与test合并
     test_df = pd.merge(test_df, all_lasttime_df, how='left',on='USRID')
-    test_df = test_df.fillna(fill_time)
+    # test_df = test_df.fillna(fill_time)
     test_df = pd.merge(test_df, all_maxclick_df, how='left',on='USRID')
     test_df = pd.merge(test_df, final_test_time_df, how='left', on='USRID')
 
-    
-    for ele in train_df.isnull().any():
-        if ele == True:
-            print('fill 0 before has null')
-            break
+    # 添加老师的特征
+    '''
+    all_train_df = pd.read_csv(all_train_path)
+    all_test_df = pd.read_csv(all_test_path)
+
+    train_agg_data.pop('USRID')
+    test_agg_data.pop('USRID')
+
+    all_train_df.pop('recenttime')
+    all_train_df.pop('FLAG')
+    all_test_df.pop('recenttime')
+
+    all_train_df.drop(train_agg_data.columns, axis=1, inplace=True)
+    all_test_df.drop(test_agg_data.columns, axis=1, inplace=True)
+
+    train_df = pd.merge(train_df,all_train_df,how='left',on='USRID')
+    test_df = pd.merge(test_df,all_test_df,how='left',on='USRID')
+    '''
 
     # 保存合并后的train和test
     train_df = train_df.fillna(0)
     test_df = test_df.fillna(0)
-    for ele in train_df.isnull().any():
-        if ele == True:
-            print('has null')
-            break
-    train_df.to_csv(train_temp_path)
-    test_df.to_csv(test_temp_path)
+
+    train_df.to_csv(train_temp_path, index=0)
+    test_df.to_csv(test_temp_path, index=0)
 
     # 删除USRID
     train_df.pop('USRID')
     test_df.pop('USRID')
     train_flg_data.pop('USRID')
 
-    imp_feat = select_feature(train_df, train_flg_data, 48)
+    # imp_feat = select_feature(train_df, train_flg_data, 50)
+    imp_feat = select_feature(train_df, train_flg_data, mode='second')
 
     X = train_df[imp_feat].values
     Y = train_flg_data.values.ravel()
@@ -200,7 +219,6 @@ if __name__ == '__main__':
 
     # 训练真正的模型
     print('model is begin')
-    print('X shape ', X.shape)
 
     xgb_model = XGBClassifier(booster = 'gbtree',
               objective = 'binary:logistic',
